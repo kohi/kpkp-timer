@@ -2,7 +2,7 @@
   "name": "KPKP-Timer ワークショップ用タイマー",
   "short_name": "KPKP-Timer",
   "description": "ワークショップ・プレゼンテーション用の多機能タイマーアプリ",
-  "start_url": "/",
+  "start_url": "/kpkp-timer/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
