@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPKP-Timer</title>
+    <!--
+        (c) RE:SML
+        無断での改変、再配布を禁じます。
+    -->
+    
+    <!-- PWA関連のメタタグ -->
+    <meta name="description" content="ワークショップ・プレゼンテーション用の多機能タイマーアプリ">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="KPKP-Timer">
+    
+    <!-- Manifest.json参照 -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+    
+    <!-- スタイルシート -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="compact">
+    <div id="app-container">
+        <!-- メイン画面 -->
+        <div id="main-screen" class="screen active">
+            <div id="person-counter-container" class="counter-container">
+                <span id="person-count">1</span><span id="person-label">人目</span>
+            </div>
+
+            <div id="main-timer-display" class="timer-display">00:00</div>
+            
+            <div id="sub-timer-info">
+                <div id="remaining-time-display" class="sub-display">残り 00:00</div>
+                <div id="next-timer-display" class="sub-display">次まで 00:00</div>
+            </div>
+
+            <div class="controls">
+                <button id="start-btn" class="control-btn primary-btn">スタート</button>
+                <button id="pause-btn" class="control-btn" disabled>一時停止</button>
+                <button id="reset-btn" class="control-btn" disabled>リセット</button>
+                <button id="skip-btn" class="control-btn" disabled>スキップ</button>
+            </div>
+
+            <button id="settings-btn" class="fab-btn" title="設定">⚙️</button>
+        </div>
+
+        <!-- 設定画面 -->
+        <div id="settings-screen" class="screen">
+            <h2 class="settings-title">設定</h2>
+
+            <!-- コメント設定 -->
+            <section id="comment-settings" class="settings-section">
+                <h3>1. コメント設定</h3>
+                <div class="setting-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-person-counter">
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="toggle-person-counter">カウンター表示</label>
+                </div>
+                <div class="setting-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-auto-countup">
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="toggle-auto-countup">自動カウントアップ</label>
+                </div>
+                <div class="setting-item">
+                    <label for="person-label-input">ラベル: </label>
+                    <input type="text" id="person-label-input" value="人目">
+                </div>
+            </section>
+
+            <!-- タイマー設定 -->
+            <section id="timer-settings" class="settings-section">
+                <h3>2. タイマー設定 (最大10個)</h3>
+                
+                <!-- 統一タイマータイプ設定 -->
+                <div class="setting-item">
+                    <label for="global-timer-type">全タイマータイプ: </label>
+                    <select id="global-timer-type">
+                        <option value="countdown">⬇️ カウントダウン</option>
+                        <option value="countup">⬆️ カウントアップ</option>
+                    </select>
+                </div>
+                
+                <div id="timers-list">
+                    <!-- タイマー項目がここに動的に追加される -->
+                </div>
+                <div class="timer-config-actions">
+                    <button id="add-timer-btn" class="action-btn">タイマー追加</button>
+                    <button id="import-csv-btn" class="action-btn">CSVからインポート</button>
+                    <button id="download-csv-template-btn" class="action-btn">CSVテンプレートDL</button>
+                    <input type="file" id="csv-file-input" accept=".csv" class="file-input-hidden">
+                </div>
+            </section>
+
+            <!-- 表示設定 -->
+            <section id="display-settings" class="settings-section">
+                <h3>3. 表示設定</h3>
+                <div class="setting-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-main-timer-display" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="toggle-main-timer-display">メインタイマー表示</label>
+                </div>
+                <div class="setting-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-remaining-time-display" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="toggle-remaining-time-display">残り時間表示</label>
+                </div>
+                <div class="setting-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-interval-time-display" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="toggle-interval-time-display">次タイマーまで表示</label>
+                </div>
+            </section>
+
+            <!-- メディア設定 -->
+            <section id="media-settings" class="settings-section">
+                <h3>4. 壁紙・BGM・機能設定</h3>
+                
+                <!-- 背景画像設定 -->
+                <div class="setting-item">
+                    <label>背景画像: </label>
+                    <div class="file-select-container" id="bg-image-container">
+                        <!-- JSでボタンと現在ファイル表示、クリアボタンが追加される -->
+                    </div>
+                </div>
+
+                <!-- BGM設定 -->
+                <div class="setting-item">
+                    <label>BGM: </label>
+                    <div class="file-select-container" id="bgm-file-container">
+                        <!-- JSでボタンと現在ファイル表示、クリアボタンが追加される -->
+                    </div>
+                </div>
+
+                <!-- アラーム音設定 -->
+                <div class="setting-item">
+                    <label>アラーム音: </label>
+                    <div class="file-select-container" id="alarm-file-container">
+                        <!-- JSでボタンと現在ファイル表示、クリアボタンが追加される -->
+                    </div>
+                </div>
+
+                <!-- インターバル終了音設定 -->
+                <div class="setting-item">
+                    <label>インターバル終了音: </label>
+                    <div class="file-select-container" id="interval-file-container">
+                        <!-- JSでボタンと現在ファイル表示、クリアボタンが追加される -->
+                    </div>
+                </div>
+
+                <!-- ショートビープ音設定 -->
+                <div class="setting-item">
+                    <label>ショートビープ音: </label>
+                    <div class="file-select-container" id="short-beep-file-container">
+                        <!-- JSでボタンと現在ファイル表示、クリアボタンが追加される -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 音声設定 -->
+            <section id="audio-settings" class="settings-section">
+                <h3>5. 音声設定</h3>
+                
+                <!-- マスター音声設定 -->
+                <div class="setting-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-sound" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="toggle-sound">マスター音声ON/OFF</label>
+                </div>
+                
+                <!-- 個別音声制御 -->
+                <div class="setting-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-bgm" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="toggle-bgm">BGM ON/OFF</label>
+                </div>
+                
+                <div class="setting-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-alarm-sound" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="toggle-alarm-sound">タイマー終了音 ON/OFF</label>
+                </div>
+                
+                <div class="setting-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-interval-sound" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="toggle-interval-sound">インターバル終了音 ON/OFF</label>
+                </div>
+
+                <!-- ショートビープ音 ON/OFF -->
+                <div class="setting-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-beep-warning" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="toggle-beep-warning">残り時間ビープ音 ON/OFF</label>
+                </div>
+                <div class="setting-item">
+                    <label for="beep-warning-seconds-input">ビープ音秒数 (カンマ区切り): </label>
+                    <input type="text" id="beep-warning-seconds-input" value="10,5,3">
+                    <small>例: 10,5,3 (残り10秒、5秒、3秒でビープ音)</small>
+                </div>
+
+                <!-- Web Audio API音源設定 -->
+                <div class="setting-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-web-audio" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="toggle-web-audio">内蔵音源を使用 (ファイル未設定時)</label>
+                </div>
+            </section>
+
+            <!-- 視覚警告設定 -->
+            <section id="visual-warning-settings" class="settings-section">
+                <h3>6. 視覚警告設定</h3>
+                <div class="setting-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-visual-warning">
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="toggle-visual-warning">残り時間背景色変化 ON/OFF</label>
+                </div>
+                <div class="setting-item">
+                    <label for="visual-warning-levels-input">背景色変化秒数 (カンマ区切り): </label>
+                    <input type="text" id="visual-warning-levels-input" value="10,5,3">
+                    <small>例: 10,5,3 (残り10秒、5秒、3秒で背景色変化)</small>
+                </div>
+                <div class="clock-mode-notice">
+                    <small style="color: #e67e22; font-weight: bold;">
+                        ⚠️ この機能はてんかん発作のリスクが低いよう設計されていますが、万一不快に感じる場合はOFFにしてください。
+                    </small>
+                </div>
+            </section>
+
+            <!-- 時計機能 -->
+            <section id="clock-settings" class="settings-section">
+                <h3>7. 時計機能</h3>
+                <div class="setting-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-clock-mode">
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="toggle-clock-mode">時計モード（タイマー機能を無効化）</label>
+                </div>
+                <div class="clock-mode-notice" style="display: none;">
+                    <small style="color: #e67e22; font-weight: bold;">
+                        ⚠️ 時計モード中はタイマー機能が全て無効になります
+                    </small>
+                </div>
+            </section>
+
+            <!-- PWA機能 -->
+            <section id="pwa-settings" class="settings-section">
+                <h3>8. アプリ機能</h3>
+                <div class="setting-item">
+                    <button id="install-pwa-btn" class="action-btn" style="display: none;">アプリとしてインストール</button>
+                    <button id="update-pwa-btn" class="action-btn" style="display: none;">アプリを更新</button>
+                </div>
+                <div class="setting-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-notifications">
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="toggle-notifications">通知機能 ON/OFF</label>
+                </div>
+            </section>
+
+            <!-- フッター（戻るボタン） -->
+            <div id="settings-footer">
+                <button id="back-to-main-btn" class="control-btn primary-btn">保存してメイン画面に戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音声要素 -->
+    <audio id="bgm-audio" loop preload="none"></audio>
+    <audio id="alarm-audio" preload="none"></audio>
+    <audio id="short-beep-audio" preload="none"></audio>
+    <!-- インターバル音はJavaScriptで動的に作成 -->
+
+    <!-- 保存状況表示（JavaScriptで動的に作成される） -->
+
+    <!-- スクリプト -->
+    <script src="js/script.js"></script>
+    
+    <!-- PWA関連のスクリプト -->
+    <script>
+        // Service Worker登録
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful: ', registration.scope);
+                        
+                        // アップデート検出
+                        registration.addEventListener('updatefound', function() {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', function() {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // 新しいバージョンが利用可能
+                                    showUpdateButton();
+                                }
+                            });
+                        });
+                    })
+                    .catch(function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+
+        // PWAインストールプロンプト
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', function(e) {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallButton();
+        });
+
+        function showInstallButton() {
+            const installBtn = document.getElementById('install-pwa-btn');
+            if (installBtn) {
+                installBtn.style.display = 'inline-block';
+                installBtn.onclick = function() {
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        deferredPrompt.userChoice.then(function(choiceResult) {
+                            if (choiceResult.outcome === 'accepted') {
+                                console.log('User accepted the install prompt');
+                            }
+                            deferredPrompt = null;
+                            installBtn.style.display = 'none';
+                        });
+                    }
+                };
+            }
+        }
+
+        function showUpdateButton() {
+            const updateBtn = document.getElementById('update-pwa-btn');
+            if (updateBtn) {
+                updateBtn.style.display = 'inline-block';
+                updateBtn.onclick = function() {
+                    if (navigator.serviceWorker.controller) {
+                        navigator.serviceWorker.controller.postMessage({type: 'SKIP_WAITING'});
+                        window.location.reload();
+                    }
+                };
+            }
+        }
+
+        // 通知許可の取得
+        function requestNotificationPermission() {
+            if ('Notification' in window && 'serviceWorker' in navigator) {
+                Notification.requestPermission().then(function(permission) {
+                    console.log('Notification permission:', permission);
+                });
+            }
+        }
+
+        // URLパラメータに基づくアクション実行
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const action = urlParams.get('action');
+            
+            if (action === 'start') {
+                // ショートカットからの開始
+                setTimeout(function() {
+                    const startBtn = document.getElementById('start-btn');
+                    if (startBtn && !startBtn.disabled) {
+                        startBtn.click();
+                    }
+                }, 1000);
+            } else if (action === 'settings') {
+                // ショートカットから設定画面
+                setTimeout(function() {
+                    const settingsBtn = document.getElementById('settings-btn');
+                    if (settingsBtn) {
+                        settingsBtn.click();
+                    }
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
